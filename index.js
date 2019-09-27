@@ -53,10 +53,12 @@ app.post(API_PATH+'login',function(req,res){
         }
     }
     var user=req.body;
+    console.log(user)
     var ftp=createFtp();
     req.session.ftp_connection=ftp;
     ftp.client.on('ready',function(){
         ftp.flag=1;
+        console.log("success")
         res.json(createRes("success"));
     })
     ftp.client.on('error',function(err){
