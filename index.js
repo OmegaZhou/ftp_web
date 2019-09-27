@@ -101,13 +101,14 @@ app.use(API_PATH, function (req, res, next) {
 
 
 app.get(API_PATH + 'get_dir', function (req, res) {
-    req.session.ftp_connection.client.list(function (err, list) {
+    var index=req.session.id;
+    var ftp=client_map.get(index);
+    ftp.client.list(function (err, list) {
         if (err) {
             res.json(createRes("Error", err));
         } else {
             res.json(createRes("success", list));
         }
-
     })
 })
 
