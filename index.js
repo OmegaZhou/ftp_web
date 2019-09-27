@@ -114,6 +114,18 @@ app.get(API_PATH + 'get_dir', function (req, res) {
     })
 })
 
+app.get(API_PATH+'pwd',function(req,res){
+    var index=req.session.id;
+    var ftp=client_map.get(index);
+    ftp.client.pwd(function (err, data) {
+        if (err) {
+            res.json(createRes("Error", err));
+        } else {
+            res.json(createRes("success", data));
+        }
+    })
+})
+
 app.listen(9090, function () {
     console.log('listen to port 9090');
 })
