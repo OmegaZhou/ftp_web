@@ -52,13 +52,11 @@ app.post(API_PATH+'login',function(req,res){
             req.session.ftp_connection.client.end();
         }
     }
-    var user=req.body;
-    console.log(user)
+    /*var user=req.body;
     var ftp=createFtp();
     req.session.ftp_connection=ftp;
     ftp.client.on('ready',function(){
         ftp.flag=1;
-        console.log("success")
         res.json(createRes("success"));
     })
     ftp.client.on('error',function(err){
@@ -71,7 +69,8 @@ app.post(API_PATH+'login',function(req,res){
     ftp.client.on('end',function(err){
         ftp.flag=0;
     })
-    ftp.client.connect({user:user.user,password:user.password});
+    ftp.client.connect({user:user.user,password:user.password});*/
+    res.json(createRes("success"));
 })
 
 app.use(API_PATH,function(req,res,next){
