@@ -55,8 +55,9 @@ app.post(API_PATH+'login',function(req,res){
             req.session.ftp_connection.client.end();
         }
     }
-    /*var user=req.body;
-    var ftp=createFtp();
+    var user=req.body;
+    console.log(user);
+    /*var ftp=createFtp();
     req.session.ftp_connection=ftp;
     ftp.client.on('ready',function(){
         ftp.flag=1;
