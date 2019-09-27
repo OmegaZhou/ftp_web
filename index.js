@@ -65,7 +65,9 @@ app.post(API_PATH+'login',function(req,res){
     })
     req.session.ftp_connection.client.on('error',function(err){
         req.session.ftp_connection.flag=0;
-        res.json(createRes("Login failed",err));
+        if(err.code=="ECONNREFUSED"){
+            res.json(createRes("Login failed",err));
+        }
     })
     req.session.ftp_connection.client.on('close',function(err){
         req.session.ftp_connection.flag=0;
@@ -74,7 +76,6 @@ app.post(API_PATH+'login',function(req,res){
         req.session.ftp_connection.flag=0;
     })
     req.session.ftp_connection.client.connect({user:user.user,password:user.password});
-    res.json(createRes("success"));
 })
 
 app.use(API_PATH,function(req,res,next){
