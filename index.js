@@ -75,7 +75,7 @@ app.post(API_PATH + 'login', function (req, res) {
             res.json(createRes("Login failed", err));
         }
     })
-    req.session.ftp_connection.client.on('close', function (err) {
+    ftp.client.on('close', function (err) {
         if(client_map.has(ftp.id)){
             client_map.delete(ftp.id);
         }
