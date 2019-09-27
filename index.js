@@ -30,7 +30,7 @@ app.get('/ftp/login.html',function(req,res){
             res.redirect('/ftp/index.html')
         }
     }
-    res.send('login.html');
+    res.sendfile('login.html');
 })
 
 app.get('/ftp/index.html',function(req,res){
@@ -40,7 +40,7 @@ app.get('/ftp/index.html',function(req,res){
     if(!req.session.ftp_connection.flag){
         res.redirect('/ftp/login.html');
     }
-    res.send('index.html');
+    res.sendfile('index.html');
 })
 
 app.post(API_PATH+'login',function(req,res){
