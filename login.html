@@ -10,8 +10,43 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+
 </head>
 
 <body>
-    hello world
+
+    <div
+        style="background:url('img/login.jpg') no-repeat;background-size:cover; position: absolute; width:100%; height: 100%;">
+        <div id="background" class="container form-horizontal"
+            style=" width: 20%; left: 40%; position: absolute; top: 30%;">
+            <form role="form" action="javascript:void(0)">
+                <div class="form-group">
+                    <label for="name">用户名</label>
+                    <input type="text" class="form-control" id="name" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label for="name">密码</label>
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码">
+                </div>
+                <div style="text-align: center">
+                    <button type="submit" class="btn btn-info" onclick="login()">登录</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <script>
+        function login() {
+            var user = $("#name").val();
+            var password = $("#password").val();
+            $.post('/ftp/login',{user:user,password:password},success=>{
+                if(success.message=='success'){
+                    location.href='/ftp/index.html';
+                }else{
+                    alert(success.result)
+                }
+            })
+        }
+       
+    </script>
 </body>
