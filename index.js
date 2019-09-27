@@ -71,7 +71,7 @@ app.post(API_PATH + 'login', function (req, res) {
             client_map.delete(ftp.id);
         }
         console.log(err);
-        if (err.code == "ECONNREFUSED") {
+        if (err.code == 530) {
             res.json(createRes("Login failed", err));
         }
     })
@@ -80,7 +80,7 @@ app.post(API_PATH + 'login', function (req, res) {
             client_map.delete(ftp.id);
         }
     })
-    req.session.ftp_connection.client.on('end', function (err) {
+    ftp.client.on('end', function (err) {
         if(client_map.has(ftp.id)){
             client_map.delete(ftp.id);
         }
