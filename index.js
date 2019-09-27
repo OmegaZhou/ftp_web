@@ -94,8 +94,10 @@ app.use(API_PATH, function (req, res, next) {
         if (client_map.has(index)) {
             next();
         }
+    }else{
+        res.json(createRes('Need login'));
     }
-    res.json(createRes('Need login'));
+    
 })
 
 
