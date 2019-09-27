@@ -61,7 +61,7 @@ app.post(API_PATH+'login',function(req,res){
     })
     ftp.client.on('error',function(err){
         ftp.flag=0;
-        res.json(err);
+        res.json(createRes("Login failed",err));
     })
     ftp.client.on('close',function(err){
         ftp.flag=0;
