@@ -31,6 +31,7 @@ app.get('/ftp/login.html',function(req,res){
     if(req.session.ftp_connection){
         if(req.session.ftp_connection.flag){
             res.redirect('/ftp/index.html')
+            return;
         }
     }
     res.sendFile(__dirname+'/login.html');
@@ -39,9 +40,11 @@ app.get('/ftp/login.html',function(req,res){
 app.get('/ftp/index.html',function(req,res){
     if(!req.session.ftp_connection){
         res.redirect('/ftp/login.html');
+        return;
     }
     if(!req.session.ftp_connection.flag){
         res.redirect('/ftp/login.html');
+        return;
     }
     res.sendFile(__dirname+'/index.html');
 })
