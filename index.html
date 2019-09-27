@@ -28,14 +28,18 @@
                 for(var i=0;i<result.length;++i){
                     $('#dir').context='';
                     var item=$('<li class="list-group-item"></li>');
-                    item.attr('style',"height:20px")
+                    item.attr('style',"height:40px")
                     var img=$('<img/>');
                     var link=$('<a></a>');
+
                     if(result[i].type=='d'){
                         img.attr('src','/ftp/img/folder.png');
                     }else{
                         img.attr('src','/ftp/img/file.png');
                     }
+                    img.attr('height','30px');
+                    img.attr('width','30px');
+                    
                     link.text(result[i].name);
                     item.append(img);
                     item.append(link);
