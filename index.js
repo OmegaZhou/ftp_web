@@ -13,7 +13,7 @@ app.get('/ftp/api/get_dir',function(req,res){
             error.error(err);
             res.status(500);
         }else{
-            res.json(list)
+            res.json(list);
         }
     })
 })
