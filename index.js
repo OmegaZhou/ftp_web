@@ -17,6 +17,8 @@ app.use(session({
     resave: false
 }))
 
+app.use('/ftp/img',express.static('/img'))
+
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({extended:false}));
 
@@ -24,13 +26,14 @@ app.get('/ftp',function(req,res){
     res.redirect('/ftp/login.html');
 })
 
+
 app.get('/ftp/login.html',function(req,res){
     if(req.session.ftp_connection){
         if(req.session.ftp_connection.flag){
             res.redirect('/ftp/index.html')
         }
     }
-    res.sendfile('login.html');
+    res.sendFile('login.html');
 })
 
 app.get('/ftp/index.html',function(req,res){
@@ -40,7 +43,7 @@ app.get('/ftp/index.html',function(req,res){
     if(!req.session.ftp_connection.flag){
         res.redirect('/ftp/login.html');
     }
-    res.sendfile('index.html');
+    res.sendFile('index.html');
 })
 
 app.post(API_PATH+'login',function(req,res){
