@@ -38,7 +38,7 @@
         function login() {
             var user = $("#name").val();
             var password = $("#password").val();
-            $.post('/ftp/login', { user: user, password: password }, success => {
+            $.post('/ftp/api/login', { user: user, password: password }, success => {
                 if (success.message == 'success') {
                     location.href = '/ftp/index.html';
                 } else {
