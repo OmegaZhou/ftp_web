@@ -32,7 +32,7 @@
                     url.attr('href', 'javascript:void(0)');
                     url.attr('onclick', 'changeDir("' + path_str + '")');
                     item.append(url);
-		    split_flag=$('<span>/</span>');
+                    split_flag = $('<span>/</span>');
                     item.append(split_flag);
                     path.append(item);
                 }
@@ -61,26 +61,36 @@
                 $('#dir').empty();
                 for (var i = 0; i < result.length; ++i) {
                     var li = $('<li class="list-group-item"></li>');
-                    var item=$('<div></div>')
+                    var item = $('<div></div>')
                     item.attr('style', "height:40px")
                     var img = $('<img/>');
                     var link = $('<a></a>');
 
-                    if (result[i].type == 'd') {
-                        img.attr('src', '/ftp/img/folder.png');
-                        link.attr('href','javascript:void(0)')
-                        link.attr('onclick','changeDir("'+now_dir+result[i].name+'")');
-                    } else {
-                        img.attr('src', '/ftp/img/file.png');
-                    }
+                    
                     img.attr('height', '30px');
                     img.attr('width', '30px');
 
                     link.text(result[i].name);
-                    
+
                     item.append(img);
                     item.append(link);
                     li.append(item)
+
+                    if (result[i].type == 'd') {
+                        img.attr('src', '/ftp/img/folder.png');
+                        link.attr('href', 'javascript:void(0)')
+                        link.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
+                    } else {
+                        img.attr('src', '/ftp/img/file.png');
+                        var download_link=("<a></a>")
+                        download_link.attr("download",result[i].name)
+                        var para=now_dir+result[i].name;
+                        download_link.attr('href','/ftp/download/'+para.replace("/","%2F"))
+                        var download_bin=('<button class="btn-xs">下载</button>')
+                        download_link.append(download_bin);
+                        item.append(download_link)
+                    }
+                    
                     $('#dir').append(li);
                 }
             })
