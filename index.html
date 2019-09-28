@@ -82,11 +82,12 @@
                         link.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
                     } else {
                         img.attr('src', '/ftp/img/file.png');
-                        var download_link=("<a></a>")
+                        var download_link=$("<a></a>")
                         download_link.attr("download",result[i].name)
                         var para=now_dir+result[i].name;
-                        download_link.attr('href','/ftp/download/'+para.replace("/","%2F"))
-                        var download_bin=('<button class="btn-xs">下载</button>')
+				para=para.toString().replace("/","%2F");
+                        download_link.attr('href','/ftp/api/download/'+para)
+                        var download_bin=$('<button class="btn-xs">下载</button>')
                         download_link.append(download_bin);
                         item.append(download_link)
                     }
