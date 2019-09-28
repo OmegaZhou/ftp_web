@@ -1,13 +1,11 @@
 const express = require('express')
 const session = require('express-session')
-const Client = require('ftp');
 const body_parser = require('body-parser')
-const fs = require('fs');
-const error = require('./lib/error')
-
+const api=require('./lib/api')
+const createRes=api.createRes;
 const API_PATH = '/ftp/api/'
 var app = express();
-var client_map = new Map();
+var client_map=api.client_map;
 app.use(session({
     secret: 'ftp_web',
     cookie: {
@@ -29,6 +27,7 @@ app.get('/ftp', function (req, res) {
 
 
 app.get('/ftp/login.html', function (req, res) {
+
     if (req.session.ftp_connection) {
         var index = req.session.id;
         if (client_map.has(index)) {
@@ -37,7 +36,8 @@ app.get('/ftp/login.html', function (req, res) {
         }
     }
     res.sendFile(__dirname + '/login.html');
-})
+
+} )
 
 app.get('/ftp/index.html', function (req, res) {
     if (!req.session.ftp_connection) {
@@ -52,41 +52,7 @@ app.get('/ftp/index.html', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 })
 
-app.post(API_PATH + 'login', function (req, res) {
-    if (req.session.ftp_connection) {
-        if (req.session.ftp_connection.flag) {
-            req.session.ftp_connection.client.end();
-        }
-    }
-    var user = req.body;
-    console.log(user);
-    req.session.ftp_connection = true;
-    var ftp = createFtp(req.session.id);
-    client_map.set(ftp.id,ftp);
-    ftp.client.on('ready', function () {
-        res.json(createRes("success"));
-    })
-    ftp.client.on('error', function (err) {
-        if(client_map.has(ftp.id)){
-            client_map.delete(ftp.id);
-        }
-        console.log(err);
-        if (err.code == 530) {
-            res.json(createRes("Login failed", err));
-        }
-    })
-    ftp.client.on('close', function (err) {
-        if(client_map.has(ftp.id)){
-            client_map.delete(ftp.id);
-        }
-    })
-    ftp.client.on('end', function (err) {
-        if(client_map.has(ftp.id)){
-            client_map.delete(ftp.id);
-        }
-    })
-    ftp.client.connect({ user: user.user, password: user.password });
-})
+app.post(API_PATH + 'login',api.login )
 
 app.use(API_PATH, function (req, res, next) {
     if (req.session.ftp_connection) {
@@ -102,48 +68,14 @@ app.use(API_PATH, function (req, res, next) {
 
 
 
-app.get(API_PATH + 'get_dir', function (req, res) {
-    var index=req.session.id;
-    var ftp=client_map.get(index);
-    ftp.client.list(function (err, list) {
-        if (err) {
-            res.json(createRes("Error", err));
-        } else {
-            res.json(createRes("success", list));
-        }
-    })
-})
+app.get(API_PATH + 'get_dir', api.getDir)
 
-app.get(API_PATH+'pwd',function(req,res){
-    var index=req.session.id;
-    var ftp=client_map.get(index);
-    ftp.client.pwd(function (err, data) {
-        if (err) {
-            res.json(createRes("Error", err));
-        } else {
-            res.json(createRes("success", data));
-        }
-    })
-})
+app.get(API_PATH+'pwd',api.pwd)
 
 app.listen(9090, function () {
     console.log('listen to port 9090');
 })
 
-function createFtp(index) {
-    var ftp = new Object();
-    ftp.client = new Client();
-    ftp.id = index;
-    return ftp;
-}
 
-function createRes(message, result) {
-    var res = new Object();
-    if (message) {
-        res.message = message;
-    }
-    if (result) {
-        res.result = result;
-    }
-    return res;
-}
+
+

@@ -10,46 +10,86 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
     <style>
-        
+
     </style>
     <script>
         var now_dir;
-        function ajax_get(url,callback){
-            $.get('/ftp/api/'+url,result=>{
-                if(result.message!='success'){
-                    location.href='/ftp/login.html'
-                }else{
+        function createPath(result) {
+            now_dir = result;
+            var items = result.split('/');
+            var path = $('#now_dir');
+            path.empty();
+            var path_str;
+            var split_flag = $('<span>/</span>');
+            path.append(split_flag)
+            path_str = '/';
+            if (now_dir != "/") {
+                for (var i = 1; i < items.length; ++i) {
+                    path += items[i] + '/';
+                    var item = $('<span></span>');
+                    var url = $('<a></a>');
+                    url.text(items[i]);
+                    url.attr('href', 'javascript:void(0)');
+                    url.attr('onclick', 'changeDir(' + path + ')');
+                    item.append(url);
+                    item.append(split_flag);
+                    path.append(item);
+                }
+            }
+        }
+        function ajax_get(url, callback) {
+            $.get('/ftp/api/' + url, result => {
+                if (result.message != 'success') {
+                    location.href = '/ftp/login.html'
+                } else {
                     callback(result.result)
                 }
             })
         }
-        function get_dir(){
-            ajax_get('get_dir',result=>{
-                for(var i=0;i<result.length;++i){
-                    $('#dir').context='';
-                    var item=$('<li class="list-group-item"></li>');
-                    item.attr('style',"height:40px")
-                    var img=$('<img/>');
-                    var link=$('<a></a>');
-
-                    if(result[i].type=='d'){
-                        img.attr('src','/ftp/img/folder.png');
-                    }else{
-                        img.attr('src','/ftp/img/file.png');
-                    }
-                    img.attr('height','30px');
-                    img.attr('width','30px');
-                    
-                    link.text(result[i].name);
-                    item.append(img);
-                    item.append(link);
-                    $('#dir').append(item);
+        function ajax_post(url, para, callback) {
+            $.post('/ftp/api/' + url, para, result => {
+                if (result.message != 'success') {
+                    location.href = '/ftp/login.html'
+                } else {
+                    callback(result.result)
                 }
             })
         }
-        function pwd(){
-            ajax_get('pwd',result=>{
-                now_dir=result;
+        function get_dir() {
+            ajax_get('get_dir', result => {
+                $('#dir').empty();
+                for (var i = 0; i < result.length; ++i) {
+                    var li = $('<li class="list-group-item"></li>');
+                    var item=$('<div></div>')
+                    item.attr('style', "height:40px")
+                    var img = $('<img/>');
+                    var link = $('<a></a>');
+
+                    if (result[i].type == 'd') {
+                        img.attr('src', '/ftp/img/folder.png');
+                    } else {
+                        img.attr('src', '/ftp/img/file.png');
+                    }
+                    img.attr('height', '30px');
+                    img.attr('width', '30px');
+
+                    link.text(result[i].name);
+                    item.append(img);
+                    item.append(link);
+                    li.append(item)
+                    $('#dir').append(li);
+                }
+            })
+        }
+        function pwd() {
+            ajax_get('pwd', result => {
+                createPath(result);
+            })
+        }
+        function changeDir(path) {
+            ajax_post('change_dir', { path: path }, result => {
+                createPath(result);
+                get_dir();
             })
         }
     </script>
@@ -61,20 +101,21 @@
         style="background:url('img/login.jpg') no-repeat;background-size:cover; position: absolute; width:100%; height: 100%;">
         <div class="container" style="width: 50%; background-color: azure">
             <div>
-                <p></p>
+                <a href="javascript:void(0)" onclick="changeDir('/')">回到根目录</a>
+                <span>&emsp;&emsp;</span>
+                <span id="now_dir"></span>
             </div>
             <ul class="list-group" id="dir">
-            
+
             </ul>
         </div>
 
-        
-            
+
+
     </div>
     <script>
-        $(document).ready(function(){
+        $(document).ready(function () {
             get_dir();
         })
     </script>
 </body>
-
