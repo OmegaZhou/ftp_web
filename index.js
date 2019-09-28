@@ -1,6 +1,7 @@
 const express = require('express')
 const session = require('express-session')
 const body_parser = require('body-parser')
+const upload=multer({dest:'./upload_tmp'});
 const api=require('./lib/api')
 const createRes=api.createRes;
 const API_PATH = '/ftp/api/'
@@ -75,6 +76,8 @@ app.get(API_PATH+'pwd',api.pwd)
 app.post(API_PATH+'change_dir',api.cwd);
 
 app.get(API_PATH+'download/:path',api.download);
+
+app.post(API_PATH+'upload',upload.single('file'),api.upload)
 app.listen(9090, function () {
     console.log('listen to port 9090');
 })
