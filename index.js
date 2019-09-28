@@ -72,7 +72,7 @@ app.get(API_PATH + 'get_dir', api.getDir)
 
 app.get(API_PATH+'pwd',api.pwd)
 
-app.post(API_PATH+'change_dir',api.cmd);
+app.post(API_PATH+'change_dir',api.cwd);
 
 app.listen(9090, function () {
     console.log('listen to port 9090');
