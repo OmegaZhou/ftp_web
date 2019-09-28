@@ -120,7 +120,7 @@
         }
 
         function mkdir() {
-            var name = $('#folder_name');
+            var name = $('#folder_name').val();
             for(var i=0;i<dir_items.length;++i){
                 if(dir_items[i].name==name){
                     alert('文件名重复')
@@ -170,7 +170,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                            <button type="button" class="btn btn-primary">新建</button>
+                            <button type="button" class="btn btn-primary" onclick="mkdir()">新建</button>
                         </div>
                     </div><!-- /.modal-content -->
                 </div><!-- /.modal -->
