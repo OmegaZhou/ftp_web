@@ -83,11 +83,13 @@
         }
         function pwd() {
             ajax_get('pwd', result => {
+                console.log(result);
                 createPath(result);
             })
         }
         function changeDir(path) {
             ajax_post('change_dir', { path: path }, result => {
+                console.log(result);
                 createPath(result);
                 get_dir();
             })
