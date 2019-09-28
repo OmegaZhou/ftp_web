@@ -1,5 +1,5 @@
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
@@ -67,7 +67,7 @@
                     var img = $('<img/>');
                     var link = $('<a></a>');
 
-                    
+
                     img.attr('height', '30px');
                     img.attr('width', '30px');
 
@@ -83,16 +83,16 @@
                         link.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
                     } else {
                         img.attr('src', '/ftp/img/file.png');
-                        var download_link=$("<a></a>")
-                        download_link.attr("download",result[i].name)
-                        var para=now_dir+result[i].name;
-				        para=encodeURIComponent(para.toString());
-                        download_link.attr('href','/ftp/api/download/'+para)
-                        var download_bin=$('<button class="btn-xs">下载</button>')
+                        var download_link = $("<a></a>")
+                        download_link.attr("download", result[i].name)
+                        var para = now_dir + result[i].name;
+                        para = encodeURIComponent(para.toString());
+                        download_link.attr('href', '/ftp/api/download/' + para)
+                        var download_bin = $('<button class="btn-xs">下载</button>')
                         download_link.append(download_bin);
                         item.append(download_link)
                     }
-                    
+
                     $('#dir').append(li);
                 }
             })
