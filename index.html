@@ -30,7 +30,7 @@
                     var url = $('<a></a>');
                     url.text(items[i]);
                     url.attr('href', 'javascript:void(0)');
-                    url.attr('onclick', 'changeDir(' + path + ')');
+                    url.attr('onclick', 'changeDir("' + path + '")');
                     item.append(url);
                     item.append(split_flag);
                     path.append(item);
@@ -68,7 +68,7 @@
                     if (result[i].type == 'd') {
                         img.attr('src', '/ftp/img/folder.png');
                         link.attr('href','javascript:void(0)')
-                        link.attr('onclick','changeDir('+now_dir+result[i].name+')');
+                        link.attr('onclick','changeDir("'+now_dir+result[i].name+'")');
                     } else {
                         img.attr('src', '/ftp/img/file.png');
                     }
@@ -119,8 +119,8 @@
     </div>
     <script>
         $(document).ready(function () {
-            get_dir();
             pwd();
+            get_dir();
         })
     </script>
 </body>
