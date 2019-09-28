@@ -14,8 +14,8 @@
 
     </style>
     <script>
-        var now_dir;
-        var dir_items;
+        var now_dir='/';
+        var dir_items= new Array();
         function createPath(result) {
             now_dir = result;
             var items = result.split('/');
@@ -121,20 +121,25 @@
 
         function mkdir() {
             var name = $('#folder_name').val();
+            if(name==''){
+                alert('文件名不能为空')
+                return;
+            }
             for(var i=0;i<dir_items.length;++i){
                 if(dir_items[i].name==name){
                     alert('文件名重复')
                     return;
                 }
-            }   
+            }
+            $('#mkdir').modal('hide')   
             ajax_post('mkdir',{path:now_dir+name},result=>{
                 pwd();
             })
 
         }
 
-        function clear(id) {
-            console.log($('#' + id).val())
+        function upload(){
+            
         }
     </script>
 
@@ -165,7 +170,7 @@
                         <div class="modal-header">
                             <h4 class="modal-title" id="myModalLabel">新建文件夹</h4>
                         </div>
-                        <div class="modal-body" style="text-align:center;">
+                        <div class="modal-body" style="text-align:left;">
                             <input type="text" id="folder_name" placeholder="输入新创建的文件夹名字" size="50%" class='input' />
                         </div>
                         <div class="modal-footer">
@@ -183,8 +188,10 @@
                         <div class="modal-header">
                             <h4 class="modal-title" id="myModalLabel">上传文件</h4>
                         </div>
-                        <div class="modal-body">
-                            <input type="file" id="upload_file" class='input' /></div>
+                        <div class="modal-body" style="text-align:left;">
+                            <input type="file" id="upload_file" class='input'/>
+                            <input type="text" id="folder_name" placeholder="输入上传的文件夹名字" size="50%" class='input' />
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary">上传</button>
