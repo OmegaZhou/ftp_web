@@ -62,19 +62,19 @@
                 $('#dir').empty();
                 for (var i = 0; i < result.length; ++i) {
                     var li = $('<li class="list-group-item"></li>');
-                    var item = $('<div></div>')
+                    var item = $('<div class="row"></div>')
                     item.attr('style', "height:40px")
                     var img = $('<img/>');
                     var link = $('<a></a>');
-
-
+                    var file_box = $('<div class="col-md-8 col-xs-8"></div>')
+                    var bin_box = $('<div class="col-md-4 col-xs-4"></div>')
                     img.attr('height', '30px');
                     img.attr('width', '30px');
 
                     link.text(result[i].name);
-
-                    item.append(img);
-                    item.append(link);
+                    file_box.append(img);
+                    file_box.append(link);
+                    item.append(file_box);
                     li.append(item)
 
                     if (result[i].type == 'd') {
@@ -83,16 +83,16 @@
                         link.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
                     } else {
                         img.attr('src', '/ftp/img/file.png');
-                        var download_link = $("<a class='.col-xs-4'></a>")
+                        var download_link = $("<a></a>")
                         download_link.attr("download", result[i].name)
                         var para = now_dir + result[i].name;
                         para = encodeURIComponent(para.toString());
                         download_link.attr('href', '/ftp/api/download/' + para)
                         var download_bin = $('<button class="btn-xs">下载</button>')
                         download_link.append(download_bin);
-                        item.append(download_link)
+                        bin_box.append(download_link)
                     }
-
+                    item.append(bin_box);
                     $('#dir').append(li);
                 }
             })
@@ -115,15 +115,52 @@
 <body>
     <div
         style="background:url('img/login.jpg') no-repeat;background-size:cover; position: absolute; width:100%; height: 100%;">
-        <div class="container" style="width: 50%; background-color: azure">
+        <div class="container" style="width: 60%; background-color: azure">
+            <div id="button_box">
+                <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#mkdir">新建文件夹</button>
+                <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#upload">上传文件</button>
+                <button>登出</button>
+            </div>
             <div>
                 <a href="javascript:void(0)" onclick="changeDir('/')">回到根目录</a>
                 <span>&emsp;&emsp;当前目录:</span>
                 <span id="now_dir"></span>
             </div>
             <ul class="list-group" id="dir">
-
             </ul>
+
+
+            <div id="mkdir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">新建文件夹</h4>
+                        </div>
+                        <input type="text" id="folder_name" placeholder="输入新创建的文件夹名字"/>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary">新建</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+
+            <div id="upload" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">上传文件</h4>
+                        </div>
+                        <input type="file" id="upload_file"/>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary">上传</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
         </div>
 
 
