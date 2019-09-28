@@ -15,6 +15,7 @@
     </style>
     <script>
         var now_dir;
+        var dir_items;
         function createPath(result) {
             now_dir = result;
             var items = result.split('/');
@@ -60,6 +61,7 @@
         function get_dir() {
             ajax_get('get_dir', result => {
                 $('#dir').empty();
+                dir_items=result;
                 for (var i = 0; i < result.length; ++i) {
                     var li = $('<li class="list-group-item"></li>');
                     var item = $('<div class="row"></div>')
@@ -111,10 +113,28 @@
             })
         }
 
-        function logout(){
-            ajax_get('logout',result=>{
-                location.href="/ftp/login.html"
+        function logout() {
+            ajax_get('logout', result => {
+                location.href = "/ftp/login.html"
             })
+        }
+
+        function mkdir() {
+            var name = $('#folder_name');
+            for(var i=0;i<dir_items.length;++i){
+                if(dir_items[i].name==name){
+                    alert('文件名重复')
+                    return;
+                }
+            }   
+            ajax_post('mkdir',{path:now_dir+name},result=>{
+                pwd();
+            })
+
+        }
+
+        function clear(id) {
+            console.log($('#' + id).val())
         }
     </script>
 
@@ -123,7 +143,7 @@
 <body>
     <div
         style="background:url('img/login.jpg') no-repeat;background-size:cover; position: absolute; width:100%; height: 100%;">
-        <div class="container" style="width: 60%; background-color: azure">
+        <div class="container" style="width: 50%; background-color: azure">
             <div id="button_box">
                 <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#mkdir">新建文件夹</button>
                 <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#upload">上传文件</button>
@@ -138,13 +158,16 @@
             </ul>
 
 
-            <div id="mkdir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div id="mkdir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="modal-title" id="myModalLabel">新建文件夹</h4>
-			</div><div class="modal-body" style="text-align:center;">
-				<input type="text" id="folder_name" placeholder="输入新创建的文件夹名字" size="50%"/></div>
+                        </div>
+                        <div class="modal-body" style="text-align:center;">
+                            <input type="text" id="folder_name" placeholder="输入新创建的文件夹名字" size="50%" class='input' />
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary">新建</button>
@@ -153,13 +176,15 @@
                 </div><!-- /.modal -->
             </div>
 
-            <div id="upload" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div id="upload" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="modal-title" id="myModalLabel">上传文件</h4>
-			</div><div class="modal-body">
-				<input type="file" id="upload_file"/></div>
+                        </div>
+                        <div class="modal-body">
+                            <input type="file" id="upload_file" class='input' /></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary">上传</button>
@@ -176,5 +201,8 @@
         $(document).ready(function () {
             pwd();
         })
+        $('body').on('hidden.bs.modal', '.modal', function () {
+            $(this).find($(".input")).val('');
+        });
     </script>
 </body>

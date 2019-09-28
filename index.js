@@ -79,6 +79,18 @@ app.post(API_PATH+'change_dir',api.cwd);
 app.get(API_PATH+'download/:path',api.download);
 
 app.post(API_PATH+'upload',upload.single('file'),api.upload)
+app.post(API_PATH+'mkdir',api.mkdir);
+app.get(API_PATH+'logout',function(req,res){
+    var index = req.session.id;
+    if (client_map.has(index)) {
+        var ftp = client_map.get(index);
+        ftp.client.end();
+        client_map.delete(index)
+    }
+    req.session.destroy(success=>{
+        res.json(createRes("success",success))
+    });
+})
 app.listen(9090, function () {
     console.log('listen to port 9090');
 })
