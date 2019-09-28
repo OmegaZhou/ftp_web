@@ -1,8 +1,9 @@
 const express = require('express')
 const session = require('express-session')
 const body_parser = require('body-parser')
-const upload=multer({dest:'./upload_tmp'});
+const multer=require('multer')
 const api=require('./lib/api')
+const upload=multer({dest:'./upload_tmp'});
 const createRes=api.createRes;
 const API_PATH = '/ftp/api/'
 var app = express();
