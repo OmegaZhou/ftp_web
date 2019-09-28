@@ -85,7 +85,7 @@
                         var download_link=$("<a></a>")
                         download_link.attr("download",result[i].name)
                         var para=now_dir+result[i].name;
-				para=para.toString().replace("/","%2F");
+				        para=encodeURIComponent()(para.toString());
                         download_link.attr('href','/ftp/api/download/'+para)
                         var download_bin=$('<button class="btn-xs">下载</button>')
                         download_link.append(download_bin);
