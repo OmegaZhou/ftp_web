@@ -67,6 +67,8 @@
 
                     if (result[i].type == 'd') {
                         img.attr('src', '/ftp/img/folder.png');
+                        link.attr('href','javascript:void(0)')
+                        link.attr('onclick','changeDir('+now_dir+result[i].name+')');
                     } else {
                         img.attr('src', '/ftp/img/file.png');
                     }
@@ -74,6 +76,7 @@
                     img.attr('width', '30px');
 
                     link.text(result[i].name);
+                    
                     item.append(img);
                     item.append(link);
                     li.append(item)
