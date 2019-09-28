@@ -120,7 +120,7 @@
         }
 
         function mkdir() {
-            var name = $('#folder_name');
+            var name = $('#folder_name').val();
             for(var i=0;i<dir_items.length;++i){
                 if(dir_items[i].name==name){
                     alert('文件名重复')
