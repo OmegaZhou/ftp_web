@@ -16,11 +16,11 @@
     <script>
         var now_dir = '/';
         var dir_items = new Array();
-        var delete_file=null;
-        var rename_file=null;
+        var delete_file = null;
+        var rename_file = null;
 
         function createPath(result) {
-            now_dir = result+'/';
+            now_dir = result;
             var items = result.split('/');
             var path = $('#now_dir');
             path.empty();
@@ -29,6 +29,7 @@
             path.append(split_flag)
             path_str = '/';
             if (now_dir != "/") {
+                now_dir += '/';
                 for (var i = 1; i < items.length; ++i) {
                     path_str += items[i] + '/';
                     var item = $('<span></span>');
@@ -109,13 +110,13 @@
                         bin_box.append(download_link)
                     }
 
-                    var rename_bin=$('<button class="btn-xs">重命名</button>')
+                    var rename_bin = $('<button class="btn-xs">重命名</button>')
                     rename_bin.attr('href', 'javascript:void(0)')
-                    rename_bin.attr('onclick','get_rename_path("'+now_dir+result[i].name+'")');
+                    rename_bin.attr('onclick', 'get_rename_path("' + now_dir + result[i].name + '")');
 
-                    var delete_bin=$('<button class="btn-xs">删除</button>');
+                    var delete_bin = $('<button class="btn-xs">删除</button>');
                     delete_bin.attr('href', 'javascript:void(0)');
-                    delete_bin.attr('onclick','get_delete_path("'+now_dir+result[i].name+'","'+result[i].type+'")')
+                    delete_bin.attr('onclick', 'get_delete_path("' + now_dir + result[i].name + '","' + result[i].type + '")')
 
                     bin_box.append(delete_bin);
                     bin_box.append(rename_bin);
@@ -188,7 +189,7 @@
             $.ajax({
                 url: '/ftp/api/upload',
                 type: 'POST',
-		    contentType:false,
+                contentType: false,
                 processData: false,
                 data: form_data,
                 success: (data) => {
@@ -215,10 +216,10 @@
                     }
                     return xhr;
                 },
-                beforeSend: function(){
+                beforeSend: function () {
                     $("#uploadFile_progressBar").show();
                 },
-                complete: function(){
+                complete: function () {
                     $("#uploadFile_progressBar").hide();
                 }
 
@@ -233,17 +234,59 @@
             }
         }
 
-        function get_delete_path(path,type){
-            delete_file=new Object();
-            delete_file.path=path;
-            delete_file.type=type;
+        function get_delete_path(path, type) {
+            delete_file = new Object();
+            delete_file.path = path;
+            delete_file.type = type;
             $('#delete_file').modal('show')
         }
 
         // 若移动文件，则使用相对路径
-        function get_rename_path(path){
-            rename_file=now_dir+path;
-            $('#rename_file').modal('show')
+        function get_rename_path(path) {
+            rename_file = now_dir + path;
+            $('#rename').modal('show')
+        }
+
+        function delete_confirm() {
+            if (!delete_file) {
+                $('#delete_file').modal('hide');
+                return;
+            } else {
+                if (delete_file.type == 'd') {
+                    ajax_post('rmdir', { path: delete_file.path }, result => {
+                        $('#delete_file').modal('hide');
+                        return;
+                    })
+                } else {
+                    ajax_post('delete_file', { path: delete_file.path }, result => {
+                        $('#delete_file').modal('hide');
+                        return;
+                    })
+                }
+            }
+        }
+
+        function rename_confirm() {
+            if (!rename_file) {
+                $('#rename').modal('hide');
+                return;
+            } 
+            var new_path = $('#new_path').val();
+            if (new_path == '') {
+                alert('文件名不能为空')
+                return;
+            }
+            for (var i = 0; i < dir_items.length; ++i) {
+                if (dir_items[i].name == new_path) {
+                    alert('文件名重复')
+                    return;
+                }
+            }
+
+            ajax_post('rename', { old_path: rename_file, new_path: now_dir + new_path }, result => {
+                $('#rename').modal('hide');
+                return;
+            })
         }
 
 
@@ -359,8 +402,8 @@
         })
         $('body').on('hidden.bs.modal', '.modal', function () {
             $(this).find($(".input")).val('');
-            var delete_file=null;
-            var rename_file=null;
+            var delete_file = null;
+            var rename_file = null;
         });
     </script>
 </body>
