@@ -128,8 +128,8 @@
         }
         function pwd() {
             ajax_get('pwd', result => {
-                get_dir();
                 createPath(result);
+                get_dir();
             })
         }
         function changeDir(path) {
@@ -243,7 +243,7 @@
 
         // 若移动文件，则使用相对路径
         function get_rename_path(path) {
-            rename_file = now_dir + path;
+            rename_file = path;
             $('#rename').modal('show')
         }
 
@@ -255,11 +255,13 @@
                 if (delete_file.type == 'd') {
                     ajax_post('rmdir', { path: delete_file.path }, result => {
                         $('#delete_file').modal('hide');
+                        pwd();
                         return;
                     })
                 } else {
                     ajax_post('delete_file', { path: delete_file.path }, result => {
                         $('#delete_file').modal('hide');
+                        pwd();
                         return;
                     })
                 }
@@ -285,6 +287,7 @@
 
             ajax_post('rename', { old_path: rename_file, new_path: now_dir + new_path }, result => {
                 $('#rename').modal('hide');
+                pwd();
                 return;
             })
         }
@@ -295,9 +298,9 @@
 
 </head>
 
-<body>
+<body style="background:url('img/login.jpg');background-size:cover;">
     <div
-        style="background:url('img/login.jpg') repeat-y;background-size:cover; position: absolute; width:100%; height: 100%;">
+        style=" position: absolute; width:100%; height: 100%;">
         <div class="container" style="width: 50%; background-color: azure">
             <div id="button_box">
                 <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#mkdir">新建文件夹</button>
