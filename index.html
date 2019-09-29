@@ -170,7 +170,7 @@
                 contentType: false,
                 data: form_data,
                 success: (data) => {
-                    if (result.message != 'success') {
+                    if (data.message != 'success') {
                         location.href = '/ftp/login.html'
                     } else {
                         $('#mkdir').modal('hide')
@@ -179,9 +179,23 @@
                 },
                 error: (err) => {
                     location.href = '/ftp/login.html'
+                },
+                xhr: function () {
+                    var xhr = $.ajaxSettings.xhr();
+                    if (xhr.upload) {
+                        xhr.upload.addEventListener("progress", progressBar, false);
+                    }
+                    return xhr;
                 }
 
             })
+            function progressBar(evt) {
+                var loaded = evt.loaded; //已经上传大小情况
+                var tot = evt.total; //附件总大小
+                var per = Math.floor(100 * loaded / tot); //已经上传的百分比
+                $(".sonValue").html(per + "%");
+                $(".sonProcess").width(per + "%");
+            }
         }
 
         function select_file() {
@@ -190,6 +204,8 @@
                 $('#file_name').val(file_name)
             }
         }
+
+
     </script>
 
 </head>
@@ -239,7 +255,13 @@
                         </div>
                         <div class="modal-body" style="text-align:left;">
                             <input type="file" id="upload_file" class='input' onchange="select_file()" />
-                            <input type="text" id="file_name" placeholder="输入上传的文件名字" size="50%" class='input' />
+                            <input type="text" id="file_name" placeholder="输入上传的文件名字" style="width: 80%"
+                                class='input' />
+                            <div id="uploadFile_progressBar" class="progress-bar" role="progressbar" aria-valuenow="60"
+                                aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: 80%;">
+                                <span id="uploadFile_rate">0%</span>
+                            </div>
+
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
