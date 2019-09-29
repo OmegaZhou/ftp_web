@@ -131,15 +131,47 @@
                     return;
                 }
             }
-            $('#mkdir').modal('hide')   
             ajax_post('mkdir',{path:now_dir+name},result=>{
+                $('#mkdir').modal('hide')  
                 pwd();
             })
 
         }
 
         function upload(){
-            
+            var name=$('#file_name').val();
+            var file=$('#upload_file')[0].files[0];
+            console.log(file)
+            if(name==''){
+                alert('文件名不能为空')
+                return;
+            }
+            if(!file){
+                alert('请上传文件')
+                return;
+            }
+            for(var i=0;i<dir_items.length;++i){
+                if(dir_items[i].name==name){
+                    alert('文件名重复')
+                    return;
+                }
+            }   
+            var form_data=new FormData();
+            form_data.append('file',file)
+            form_data.append('name',name);
+            form_data.append('path',now_dir+name);
+
+            ajax_post('upload',form_data,result=>{
+                $('#mkdir').modal('hide')  
+                pwd();
+            })
+        }
+
+        function select_file(){
+            var file_name=$('#upload_file')[0].files[0].name;
+            if(!$('#file_name').val()){
+                $('#file_name').val(file_name)
+            }
         }
     </script>
 
@@ -189,12 +221,12 @@
                             <h4 class="modal-title" id="myModalLabel">上传文件</h4>
                         </div>
                         <div class="modal-body" style="text-align:left;">
-                            <input type="file" id="upload_file" class='input'/>
-                            <input type="text" id="folder_name" placeholder="输入上传的文件夹名字" size="50%" class='input' />
+                            <input type="file" id="upload_file" class='input' onchange="select_file()"/>
+                            <input type="text" id="file_name" placeholder="输入上传的文件名字" size="50%" class='input' />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                            <button type="button" class="btn btn-primary">上传</button>
+                            <button type="button" class="btn btn-primary" onclick="upload()">上传</button>
                         </div>
                     </div><!-- /.modal-content -->
                 </div><!-- /.modal -->
