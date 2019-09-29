@@ -14,8 +14,8 @@
 
     </style>
     <script>
-        var now_dir='/';
-        var dir_items= new Array();
+        var now_dir = '/';
+        var dir_items = new Array();
         function createPath(result) {
             now_dir = result;
             var items = result.split('/');
@@ -58,10 +58,11 @@
                 }
             })
         }
+
         function get_dir() {
             ajax_get('get_dir', result => {
                 $('#dir').empty();
-                dir_items=result;
+                dir_items = result;
                 for (var i = 0; i < result.length; ++i) {
                     var li = $('<li class="list-group-item"></li>');
                     var item = $('<div class="row"></div>')
@@ -121,55 +122,71 @@
 
         function mkdir() {
             var name = $('#folder_name').val();
-            if(name==''){
+            if (name == '') {
                 alert('文件名不能为空')
                 return;
             }
-            for(var i=0;i<dir_items.length;++i){
-                if(dir_items[i].name==name){
+            for (var i = 0; i < dir_items.length; ++i) {
+                if (dir_items[i].name == name) {
                     alert('文件名重复')
                     return;
                 }
             }
-            ajax_post('mkdir',{path:now_dir+name},result=>{
-                $('#mkdir').modal('hide')  
+            ajax_post('mkdir', { path: now_dir + name }, result => {
+                $('#mkdir').modal('hide')
                 pwd();
             })
 
         }
 
-        function upload(){
-            var name=$('#file_name').val();
-            var file=$('#upload_file')[0].files[0];
+        function upload() {
+            var name = $('#file_name').val();
+            var file = $('#upload_file')[0].files[0];
             console.log(file)
-            if(name==''){
+            if (name == '') {
                 alert('文件名不能为空')
                 return;
             }
-            if(!file){
+            if (!file) {
                 alert('请上传文件')
                 return;
             }
-            for(var i=0;i<dir_items.length;++i){
-                if(dir_items[i].name==name){
+            for (var i = 0; i < dir_items.length; ++i) {
+                if (dir_items[i].name == name) {
                     alert('文件名重复')
                     return;
                 }
-            }   
-            var form_data=new FormData();
-            form_data.append('file',file)
-            form_data.append('name',name);
-            form_data.append('path',now_dir+name);
+            }
+            var form_data = new FormData();
+            form_data.append('file', file)
+            form_data.append('name', name);
+            form_data.append('path', now_dir + name);
 
-            ajax_post('upload',form_data,result=>{
-                $('#mkdir').modal('hide')  
-                pwd();
+            $.ajax({
+                url: '/ftp/api/upload',
+                type: 'POST',
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: form_data,
+                success: (data) => {
+                    if (result.message != 'success') {
+                        location.href = '/ftp/login.html'
+                    } else {
+                        $('#mkdir').modal('hide')
+                        pwd();
+                    }
+                },
+                error: (err) => {
+                    location.href = '/ftp/login.html'
+                }
+
             })
         }
 
-        function select_file(){
-            var file_name=$('#upload_file')[0].files[0].name;
-            if(!$('#file_name').val()){
+        function select_file() {
+            var file_name = $('#upload_file')[0].files[0].name;
+            if (!$('#file_name').val()) {
                 $('#file_name').val(file_name)
             }
         }
@@ -221,7 +238,7 @@
                             <h4 class="modal-title" id="myModalLabel">上传文件</h4>
                         </div>
                         <div class="modal-body" style="text-align:left;">
-                            <input type="file" id="upload_file" class='input' onchange="select_file()"/>
+                            <input type="file" id="upload_file" class='input' onchange="select_file()" />
                             <input type="text" id="file_name" placeholder="输入上传的文件名字" size="50%" class='input' />
                         </div>
                         <div class="modal-footer">
