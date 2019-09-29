@@ -16,8 +16,11 @@
     <script>
         var now_dir = '/';
         var dir_items = new Array();
+        var delete_file=null;
+        var rename_file=null;
+
         function createPath(result) {
-            now_dir = result;
+            now_dir = result+'/';
             var items = result.split('/');
             var path = $('#now_dir');
             path.empty();
@@ -84,19 +87,39 @@
                         img.attr('src', '/ftp/img/folder.png');
                         link.attr('href', 'javascript:void(0)')
                         link.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
+
+                        var download_bin = $('<button class="btn-xs">进入</button>')
+                        download_bin.attr('onclick', 'changeDir("' + now_dir + result[i].name + '")');
+                        bin_box.append(download_bin)
                     } else {
+                        var para = now_dir + result[i].name;
+                        para = encodeURIComponent(para.toString());
 
 
                         img.attr('src', '/ftp/img/file.png');
+                        link.attr("download", result[i].name)
+                        link.attr('href', '/ftp/api/download/' + para)
+
                         var download_link = $("<a></a>")
                         download_link.attr("download", result[i].name)
-                        var para = now_dir + result[i].name;
-                        para = encodeURIComponent(para.toString());
                         download_link.attr('href', '/ftp/api/download/' + para)
                         var download_bin = $('<button class="btn-xs">下载</button>')
+
                         download_link.append(download_bin);
                         bin_box.append(download_link)
                     }
+
+                    var rename_bin=$('<button class="btn-xs">重命名</button>')
+                    rename_bin.attr('href', 'javascript:void(0)')
+                    rename_bin.attr('onclick','get_rename_path("'+now_dir+result[i].name+'")');
+
+                    var delete_bin=$('<button class="btn-xs">删除</button>');
+                    delete_bin.attr('href', 'javascript:void(0)');
+                    delete_bin.attr('onclick','get_delete_path("'+now_dir+result[i].name+'","'+result[i].type+'")')
+
+                    bin_box.append(delete_bin);
+                    bin_box.append(rename_bin);
+
                     item.append(bin_box);
                     $('#dir').append(li);
                 }
@@ -171,7 +194,7 @@
                     if (data.message != 'success') {
                         location.href = '/ftp/login.html'
                     } else {
-                        $('#mkdir').modal('hide')
+                        $('#upload').modal('hide')
                         pwd();
                     }
                 },
@@ -208,6 +231,20 @@
                 $('#file_name').val(file_name)
             }
         }
+
+        function get_delete_path(path,type){
+            delete_file=new Object();
+            delete_file.path=path;
+            delete_file.type=type;
+            $('#delete_file').modal('show')
+        }
+
+        // 若移动文件，则使用相对路径
+        function get_rename_path(path){
+            rename_file=now_dir+path;
+            $('#rename_file').modal('show')
+        }
+
 
 
     </script>
@@ -265,11 +302,46 @@
                                 aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: 80%;">
                                 <span id="uploadFile_rate">0%</span>
                             </div>
-
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary" onclick="upload()">上传</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+
+            <div id="delete_file" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="myModalLabel">删除文件</h4>
+                        </div>
+                        <div class="modal-body" style="text-align:left;">
+                            <h4>确定删除该文件/文件夹吗</h4>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" onclick="delete_confirm()">确定</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+
+            <div id="rename" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="myModalLabel">重命名</h4>
+                        </div>
+                        <div class="modal-body" style="text-align:left;">
+                            <input type="text" id="new_path" placeholder="输入新的文件/文件夹名字" size="50%" class='input' />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" onclick="rename_confirm()">重命名</button>
                         </div>
                     </div><!-- /.modal-content -->
                 </div><!-- /.modal -->
@@ -286,6 +358,8 @@
         })
         $('body').on('hidden.bs.modal', '.modal', function () {
             $(this).find($(".input")).val('');
+            var delete_file=null;
+            var rename_file=null;
         });
     </script>
 </body>

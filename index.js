@@ -80,6 +80,9 @@ app.get(API_PATH+'download/:path',api.download);
 
 app.post(API_PATH+'upload',upload.single('file'),api.upload)
 app.post(API_PATH+'mkdir',api.mkdir);
+app.post(API_PATH+'rename',api.rename);
+app.post(API_PATH+'rmdir',api.rmdir);
+app.post(API_PATH+'delete_file',api.delete_file);
 app.get(API_PATH+'logout',function(req,res){
     var index = req.session.id;
     if (client_map.has(index)) {
