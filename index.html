@@ -165,9 +165,7 @@
             $.ajax({
                 url: '/ftp/api/upload',
                 type: 'POST',
-                cache: false,
                 processData: false,
-                contentType: false,
                 data: form_data,
                 success: (data) => {
                     if (data.message != 'success') {
@@ -183,19 +181,25 @@
                 xhr: function () {
                     var xhr = $.ajaxSettings.xhr();
                     if (xhr.upload) {
-                        xhr.upload.addEventListener("progress", progressBar, false);
+                        xhr.upload.addEventListener("progress", function (evt) {
+                            var loaded = evt.loaded; //已经上传大小情况
+                            var tot = evt.total; //附件总大小
+                            var per = Math.floor(100 * loaded / tot); //已经上传的百分比
+                            $("#uploadFile_rate").html(per + "%");
+                            $("#uploadFile_progressBar").width(per + "%");
+                        }, false);
                     }
                     return xhr;
+                },
+                beforeSend: function(){
+                    $("#uploadFile_progressBar").show();
+                },
+                complete: function(){
+                    $("#uploadFile_progressBar").hide();
                 }
 
             })
-            function progressBar(evt) {
-                var loaded = evt.loaded; //已经上传大小情况
-                var tot = evt.total; //附件总大小
-                var per = Math.floor(100 * loaded / tot); //已经上传的百分比
-                $(".sonValue").html(per + "%");
-                $(".sonProcess").width(per + "%");
-            }
+
         }
 
         function select_file() {
@@ -278,6 +282,7 @@
     <script>
         $(document).ready(function () {
             pwd();
+            $('#uploadFile_progressBar').hide();
         })
         $('body').on('hidden.bs.modal', '.modal', function () {
             $(this).find($(".input")).val('');
