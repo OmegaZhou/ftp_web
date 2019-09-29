@@ -160,7 +160,7 @@
             var form_data = new FormData();
             form_data.append('file', file)
             form_data.append('name', name);
-            form_data.append('path', now_dir + name);
+            form_data.append('path', now_dir);
 
             $.ajax({
                 url: '/ftp/api/upload',
