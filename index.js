@@ -20,6 +20,7 @@ app.use(session({
 
 app.use('/ftp/img', express.static(__dirname + '/img'))
 
+app.use('/ftp/js', express.static(__dirname + '/js'))
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: false }));
 
