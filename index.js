@@ -57,6 +57,7 @@ app.get('/ftp/index.html', function (req, res) {
 app.post(API_PATH + 'login',api.login )
 
 app.use(API_PATH, function (req, res, next) {
+	console.log("mid",req.session.ftp_connection)
     if (req.session.ftp_connection) {
         var index = req.session.id;
         if (client_map.has(index)) {
