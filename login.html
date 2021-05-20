@@ -9,6 +9,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+    <script src="static_lib/jsencrypt.min.js"></script>
 
 </head>
 
@@ -38,14 +39,21 @@
         function login() {
             var user = $("#name").val();
             var password = $("#password").val();
-            $.post('/ftp/api/login', { user: user, password: password }, success => {
-                if (success.message == 'success') {
-                    location.href = '/ftp/index.html';
-                } else {
-                    console.log(success.result)
-                    alert(success.message)
-                }
+            $.get('/ftp/api/pub_rsa', pub_rsa => {
+                var encrypt=new JSEncrypt();
+                encrypt.setPublicKey(pub_rsa)
+                user = encrypt.encrypt(user)
+                password = encrypt.encrypt(password)
+                $.post('/ftp/api/login', { user: user, password: password }, success => {
+                    if (success.message == 'success') {
+                        location.href = '/ftp/index.html';
+                    } else {
+                        console.log(success.result)
+                        alert(success.message)
+                    }
+                })
             })
+
         }
 
     </script>
