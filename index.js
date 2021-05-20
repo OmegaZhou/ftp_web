@@ -19,9 +19,10 @@ app.use(session({
 }))
 
 app.use('/ftp/img', express.static(__dirname + '/img'))
-app.use("/ftp/static_lib", express.static(__dirname + '/static_lib'))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use('/ftp/js', express.static(__dirname + '/js'))
+
 
 app.get('/ftp', function (req, res) {
     res.redirect('/ftp/login.html');
@@ -57,6 +58,7 @@ app.get('/ftp/index.html', function (req, res) {
 app.post(API_PATH + 'login', api.login)
 app.get(API_PATH + "pub_rsa", api.get_pub_rsa)
 app.use(API_PATH, function (req, res, next) {
+	console.log("mid",req.session.ftp_connection)
     if (req.session.ftp_connection) {
         var index = req.session.id;
         if (client_map.has(index)) {
