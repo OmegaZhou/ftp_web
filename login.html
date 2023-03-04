@@ -55,6 +55,10 @@
                         location.reload()
                     }
                 })
+            }).fail((xhr, status, error)=>{
+                if(xhr.status==404){
+                    location.reload()
+                }
             })
 
         }
