@@ -1,6 +1,7 @@
 const express = require('express')
 const session = require('express-session')
 const body_parser = require('body-parser')
+const requestIp = require('request-ip');
 const multer = require('multer')
 const api = require('./lib/api')
 const upload = multer({ dest: './upload_tmp' });
@@ -8,6 +9,7 @@ const createRes = api.createRes;
 const API_PATH = '/ftp/api/'
 var app = express();
 var client_map = api.client_map;
+api.init(app, {max_age : 1000*60*60, max_try : 3})
 app.use(session({
     secret: 'ftp_web',
     cookie: {
@@ -17,7 +19,8 @@ app.use(session({
     resave: false,
 
 }))
-
+app.use(requestIp.mw())
+app.use(api.limitLoginTime)
 app.use('/ftp/img', express.static(__dirname + '/img'))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

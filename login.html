@@ -50,6 +50,10 @@
                         console.log(success.result)
                         alert(success.message)
                     }
+                }).fail((xhr, status, error)=>{
+                    if(xhr.status==404){
+                        location.reload()
+                    }
                 })
             })
 
