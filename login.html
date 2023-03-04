@@ -49,16 +49,11 @@
                     } else {
                         console.log(success.result)
                         alert(success.message)
-                    }
-                }).fail((xhr, status, error)=>{
-                    if(xhr.status==404){
-                        location.reload()
+                        if(success.result == 0){
+                            location.reload()
+                        }
                     }
                 })
-            }).fail((xhr, status, error)=>{
-                if(xhr.status==404){
-                    location.reload()
-                }
             })
 
         }
