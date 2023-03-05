@@ -20,7 +20,7 @@ app.use(session({
 
 }))
 app.use(requestIp.mw())
-app.use(api.limitLoginTime)
+app.use(API_PATH+'login',api.limitLoginTime)
 app.use('/ftp/img', express.static(__dirname + '/img'))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -47,11 +47,7 @@
                     if (success.message == 'success') {
                         location.href = '/ftp/index.html';
                     } else {
-                        console.log(success.result)
                         alert(success.message)
-                        if(success.result == 0){
-                            location.reload()
-                        }
                     }
                 })
             })
