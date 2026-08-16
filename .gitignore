@@ -1,3 +1,20 @@
 node_modules
 tmp_load
 *.rsa
+
+# ===== AI 规则与工作区（不纳入版本控制）=====
+CLAUDE.md
+.claude/
+
+# ===== 中间数据 / 运行产物 =====
+error.log
+upload_tmp/
+
+# ===== 安卓客户端构建产物 =====
+android_client/.gradle/
+android_client/app/build/
+android_client/build/
+android_client/local.properties
+android_client/.idea/
+android_client/.cxx/
+android_client/captures/

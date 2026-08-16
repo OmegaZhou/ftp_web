@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FtpWebClient</string>
+
+    <!-- 登录页 -->
+    <string name="login_title">FTP Web 客户端</string>
+    <string name="protocol_http">http://</string>
+    <string name="protocol_https">https://</string>
+    <string name="http_warning">http 为明文传输，密码可能被窃听，建议仅在可信局域网内使用</string>
+    <string name="hint_domain">服务器地址（IP或域名:端口）</string>
+    <string name="hint_username">用户名</string>
+    <string name="hint_password">密码</string>
+    <string name="remember_credentials">记住账号密码</string>
+    <string name="login">登录</string>
+    <string name="logging_in">登录中…</string>
+    <string name="login_domain_empty">请输入服务器地址</string>
+    <string name="login_username_empty">请输入用户名</string>
+    <string name="login_password_empty">请输入密码</string>
+    <string name="login_failed">登录失败</string>
+
+    <!-- 主界面顶部 -->
+    <string name="mkdir">新建文件夹</string>
+    <string name="upload">上传</string>
+    <string name="logout">登出</string>
+    <string name="back_root">回到根目录</string>
+    <string name="current_dir">当前目录：</string>
+    <string name="empty_dir">当前目录为空</string>
+
+    <!-- 对话框 -->
+    <string name="mkdir_title">新建文件夹</string>
+    <string name="mkdir_hint">输入新文件夹名称</string>
+    <string name="upload_title">上传文件</string>
+    <string name="upload_hint">输入文件名</string>
+    <string name="rename_title">重命名</string>
+    <string name="rename_hint">输入新名称</string>
+    <string name="delete_title">删除</string>
+    <string name="delete_message">确定删除 %1$s 吗？</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="input_cannot_empty">输入不能为空</string>
+
+    <!-- 列表项 -->
+    <string name="enter">进入</string>
+    <string name="download">下载</string>
+    <string name="rename">重命名</string>
+    <string name="delete">删除</string>
+    <string name="icon_file_type">文件类型图标</string>
+
+    <!-- 操作反馈 -->
+    <string name="uploading">上传中…</string>
+    <string name="upload_success">上传完成</string>
+    <string name="upload_fail">上传失败</string>
+    <string name="downloading">下载中…</string>
+    <string name="download_success">下载完成：%1$s</string>
+    <string name="download_fail">下载失败</string>
+    <string name="mkdir_success">创建成功</string>
+    <string name="delete_success">删除成功</string>
+    <string name="rename_success">重命名成功</string>
+    <string name="operation_failed">操作失败</string>
+
+    <!-- 会话与文件选择 -->
+    <string name="session_expired">会话已过期，请重新登录</string>
+    <string name="pick_file_cancelled">已取消选择文件</string>
+    <string name="pick_file_failed">无法读取所选文件</string>
+</resources>
