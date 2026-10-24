@@ -90,14 +90,40 @@ test('all auth failures terminate and mutations require CSRF and trusted Origin'
   const legacy = await fetch(base + '/ftp/api/get_dir'); assert.equal(legacy.status, 200); assert.equal((await legacy.json()).message, 'Need login');
 });
 test('legacy RSA login preserves Android connect.sid cookie and old directory/pwd envelopes', async () => {
-  const publicKey = await (await fetch(base + '/ftp/api/pub_rsa')).text();
+  const keyResponse = await fetch(base + '/ftp/api/pub_rsa', { redirect: 'manual' });
+  assert.equal(keyResponse.status, 200); assert.equal(keyResponse.headers.get('location'), null);
+  const publicKey = await keyResponse.text();
   const rsa = new NodeRSA(publicKey); rsa.setOptions({ encryptionScheme: 'pkcs1', environment: 'browser' });
-  const response = await fetch(base + '/ftp/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: rsa.encrypt('alice', 'base64'), password: rsa.encrypt('integration-only', 'base64') }) });
-  assert.equal((await response.json()).message, 'success');
-  const cookie = response.headers.get('set-cookie')!.split(';')[0]; assert.ok(cookie.startsWith('connect.sid='));
-  const listing = await fetch(base + '/ftp/api/get_dir', { headers: { cookie } }); assert.equal((await listing.json()).message, 'success');
-  const pwd = await fetch(base + '/ftp/api/pwd', { headers: { cookie } }); assert.deepEqual(await pwd.json(), { message: 'success', result: '/' });
-  const retired = await fetch(base + '/ftp/index.html', { redirect: 'manual' }); assert.equal(retired.status, 302); assert.equal(retired.headers.get('location'), '/ftp/app/');
+  for (const format of ['application/json', 'application/x-www-form-urlencoded']) {
+    const encrypted = { user: rsa.encrypt('alice', 'base64'), password: rsa.encrypt('integration-only', 'base64') };
+    const response = await fetch(base + '/ftp/api/login', { method: 'POST', redirect: 'manual', headers: { 'content-type': format }, body: format === 'application/json' ? JSON.stringify(encrypted) : new URLSearchParams(encrypted).toString() });
+    assert.equal(response.status, 200); assert.equal(response.headers.get('location'), null);
+    assert.match(response.headers.get('content-type')!, /application\/json/u);
+    assert.equal((await response.json()).message, 'success');
+    const cookie = response.headers.get('set-cookie')!.split(';')[0]; assert.ok(cookie.startsWith('connect.sid='));
+    for (const endpoint of ['get_dir', 'pwd']) {
+      const result = await fetch(base + '/ftp/api/' + endpoint, { redirect: 'manual', headers: { cookie } });
+      assert.equal(result.status, 200); assert.equal(result.headers.get('location'), null);
+      assert.match(result.headers.get('content-type')!, /application\/json/u);
+      const value = await result.json(); assert.equal(value.message, 'success');
+      if (endpoint === 'pwd') assert.deepEqual(value, { message: 'success', result: '/' });
+    }
+  }
+});
+
+test('old Web entry points redirect GET and HEAD to the fixed new app regardless of query', async () => {
+  for (const endpoint of ['/ftp', '/ftp/', '/ftp/login.html', '/ftp/index.html']) {
+    for (const suffix of ['', '?next=https%3A%2F%2Fexample.invalid%2F&legacy=1']) {
+      for (const method of ['GET', 'HEAD']) {
+        const response = await fetch(base + endpoint + suffix, { method, redirect: 'manual' });
+        assert.equal(response.status, 302, `${method} ${endpoint}${suffix}`);
+        assert.equal(response.headers.get('location'), '/ftp/app/');
+        const body = await response.text();
+        if (method === 'HEAD') assert.equal(body, '');
+        else assert.ok(!body.includes('<form'));
+      }
+    }
+  }
 });
 test('real tus offset/ownership and asynchronous idempotent complete transfer Unicode folder + empty directory', async () => {
   const data = randomBytes(320000);

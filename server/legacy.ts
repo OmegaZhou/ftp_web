@@ -22,9 +22,8 @@ export function installLegacy(app: Express, services: Services) {
   const resolve = (request: Request, value: unknown) => typeof value === 'string' && value.startsWith('/') ? absolutePath(value) : absolutePath(path.posix.join(request.session.user!.cwd, relativePath(value)));
   const success = (result?: unknown) => result === undefined ? { message: 'success' } : { message: 'success', result };
   app.use('/ftp/img', express.static(path.join(root, 'img'))); app.use('/ftp/js', express.static(path.join(root, 'js')));
-  app.get('/ftp/login.html', (_request, response) => response.sendFile(path.join(root, 'login.html')));
-  // The retired page interpolated FTP filenames into inline onclick handlers.
-  app.get('/ftp/index.html', (_request, response) => response.redirect('/ftp/app/'));
+  // Retire both old Web pages; Android continues using the separate JSON API below.
+  app.get(['/ftp/login.html', '/ftp/index.html'], (_request, response) => response.redirect('/ftp/app/'));
   app.get(prefix + 'pub_rsa', (_request, response) => response.type('text/plain').sendFile(path.join(services.keyDirectory, 'pub_key.rsa')));
   app.post(prefix + 'login', route(async (request, response) => {
     if (typeof request.body?.user !== 'string' || typeof request.body?.password !== 'string' || request.body.user.length > 4096 || request.body.password.length > 4096) throw new ApiError(400, 'INVALID_CREDENTIALS', '登录信息格式无效');

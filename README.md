@@ -1,6 +1,6 @@
 # FTP Web · 云端资料室
 
-基于 FTP 的文件工作台，使用 React / TypeScript 前端和 Express / SQLite 后端。新界面位于 `/ftp/app/`；旧 Android 使用的 `/ftp/api/` 保留兼容适配。
+基于 FTP 的文件工作台，使用 React / TypeScript 前端和 Express / SQLite 后端。新界面位于 `/ftp/app/`；旧网页入口 `/ftp`、`/ftp/`、`/ftp/login.html`、`/ftp/index.html` 的 GET/HEAD 请求统一以 302 转到该固定地址，不传递旧查询参数。旧 Android 使用的 `/ftp/api/`、RSA 登录和 JSON 响应保留兼容适配。
 
 2026-10-24 已发布 `6bfea50d88326cce71e721853fcb2698b751d7fb` 至 [正式入口](https://playerzhou.com/ftp/app/)。分块经实网比较后选择 **4 MiB（4,194,304 字节）**，公网配置为 `measured`，报告 ID 为 `hostdare-20261024-v1`。本轮部署、实测、发布冒烟和临时测试账号清理已完成；未覆盖的浏览器与设备验收范围见下文。
 
