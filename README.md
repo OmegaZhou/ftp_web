@@ -69,3 +69,11 @@ Remove-Item Env:FTP_TEST_LARGE_MIB
 ```
 
 本地测试不替代现有 Nginx 链路测试、触屏真机验收或完整故障注入矩阵。阶段结果与尚未完成的发布门统一记录在 [task_001](.codex/tasks/task_001/task.md)。
+
+## 服务器发布
+
+`scripts/deploy.sh` 提供 `prepare`、`activate`、`rollback` 三个显式步骤，需在部署主机以 root 执行。`prepare <完整提交 SHA> <运行包路径> <运行包 SHA-256>` 校验归档并安装生产依赖，不切换服务。运行包只包含 Git 中的后端入口、锁文件、server/lib、旧登录所需资源及已构建的 `web/dist`，不能混入私钥、用户文件或制作源图。
+
+发布目录位于 `/opt/ftp-web/releases/<SHA>`，原 `/opt/ftp_web` 保留；持久数据统一放在 `/var/lib/ftp-web`。`activate <完整提交 SHA> <已实测块字节数> <实际 HTTPS origin>` 通过专用 systemd drop-in 切换版本，保留原环境密钥、RSA 目录、内存限制及系统保护。切换前备份配置，失败自动回滚；命令输出具体的 `rollback <备份目录>` 路径。回滚保留持久任务及暂存数据，不把数据库恢复到旧快照以免丢失新任务。不要对生产运行会替换 PAM 配置的旧迁移测试脚本。
+
+当前已授权发布，但正式切换需完成 FTP 登录授权和真实链路选块。`prepare` 成功不等于已部署上线，运行候选测试也不等于正式选型完成。

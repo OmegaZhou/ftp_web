@@ -30,6 +30,16 @@
 
 完成浏览器文件选择/上传/刷新恢复的真实闭环（当前自动选择文件被 Chrome 扩展文件权限阻挡），补齐故障矩阵与触屏真机验收；随后在明确部署范围内运行现有 Nginx 链路 benchmark，验证生产 FTP 能力、384 MiB cgroup 和磁盘预算，形成可复核报告再锁定发布配置。发布与回退必须保留 SQLite 和暂存目录。
 
+### 2026-10-24 GitHub 与发布准备
+
+用户已明确授权 commit、推送 GitHub 与部署。Web 改造提交 `bb4aecabdc1ace69225c117b5498c3893237527c` 已推送 `origin/master` 并核对远端 SHA；原 Android 修改与未跟踪个人文件没有混入提交。Git 默认 SSH 代理命令不兼容当前 PowerShell，使用单次 `ProxyCommand=none` 成功推送，没有改全局 SSH 配置。
+
+运行包基于该提交白名单构建，追加已验收 `web/dist`，共 51 个归档条目；包 SHA-256 为 `f4606ed8a75911bd9d8d0451318d51cfc7385bbb523c895c0e3d2d6b93633e1d`。已上传服务器并准备 `/opt/ftp-web/releases/bb4aecabdc1ace69225c117b5498c3893237527c`（root:root 0755），未切换旧服务。线上实际入口为 `https://playerzhou.com/ftp/`；hd 域名重定向到该域名。当前 Nginx 主配置及站点配置摘要与开发前基线一致。
+
+新增 `scripts/deploy.sh` 提供 prepare/activate/rollback；独立审查三维通过、`bash -n` 通过，覆盖停服前 ERR/HUP/INT/TERM 回滚处理。审查只证明脚本与静态恢复设计，未执行生产激活或回滚故障注入。SQLite 配置快照不包含完整暂存副本；共享数据保留，回滚不会覆盖新任务。复用经验：把失败及信号处理安装在第一次停服前，避免备份或 SSH 中断留下停止状态。
+
+当前待提供授权 FTP 账号及安全凭据来源，才能执行真实上传/分块测试并完成正式切服。已向用户询问本地凭据文件路径，不把密码写入对话、提交或日志。准备成功不是上线成功，8 MiB 仍未被选为正式默认。
+
 ## 关键决策
 
 - 2026-10-24：旧 `/ftp/index.html` 重定向到正式新页面，避免重新暴露旧 inline onclick 的文件名注入；旧 Android API 和 `connect.sid` 名称保留。回退应使用已审查代码版本并保留持久数据，不能把有已知漏洞的旧页面当作安全回切入口。
