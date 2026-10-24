@@ -26,6 +26,8 @@
 
 ## 当前进度
 
+当前线上 v1.8 为 `5b3a4fb`，入口修复及 20 项回归见末节；以下 `6bfea50` 与 19 项为 v1.7 历史验证。
+
 正式源码和六套服装、六个场景、六姿势 Q 宠已实现。最终代码 `6bfea50d88326cce71e721853fcb2698b751d7fb` 已推送并部署到 `https://playerzhou.com/ftp/app/`，公网配置为 **4,194,304 字节（4 MiB）、`measured`、`hostdare-20261024-v1`**。`bb4aeca` 完成实网粗筛、复测及 1 GiB 确认，最终 SHA 另通过中断恢复修复验证。**本轮部署、实测、发布冒烟和临时账号、任务/暂存及私密测试资料清理已完成。** 未改 Nginx 或用户既有 Android 工作区文件；未覆盖的浏览器、设备和完整故障矩阵范围仍明确保留。
 
 真实中断 PATCH 后 HEAD 超过 20 秒等待的问题已定位并修复：原 `tus.handle` 在 destroyed response 上发送响应可能不结束，外层任务锁持续占用。最终版本使用公开 `handleWeb`，等待 DurableFiles 的实际 finalizer 后才处理已关闭响应，避免提前释放写锁或永久占锁；原间接依赖 `srvx@0.11.22` 显式声明。后端 19/19、typecheck、build 及独立审查通过，最终 SHA 的隔离与公网中断恢复验证单列如下。
@@ -401,4 +403,6 @@ UI 预览应演示文件列表/搜索/切换、选择与批量工具、上传入
 - 本次仅补齐旧登录页入口：`/ftp/login.html` 与 `/ftp/index.html` 共用 302 跳转，目标固定为 `/ftp/app/`；保留 `/ftp`、`/ftp/` 现有跳转，GET/HEAD 及查询参数访问均不再进入旧页面。
 - 核查 Git 跟踪的 HTML 仅有根目录 `index.html`、`login.html` 与新版 `web/index.html`，未发现其他需要迁移的旧网页入口。Android 使用 `/ftp/api/*` 与 RSA 公钥接口，不依赖旧 HTML；本次不修改 Android、API 实现、Nginx 或用户数据。
 - 验收：`npm run typecheck` 通过；定向回归 3/3 通过；`npm test` 20/20 通过，包含真实 FTP 的 RSA 表单/JSON 登录、`connect.sid`、目录/当前路径 JSON 响应，以及 4 个旧入口的 GET/HEAD 和带查询参数矩阵。原有上传、续传、下载与断开连接回归同时通过。主控另执行 `npm run build` 通过。
-- 本地实现与验证完成，交由主控安排独立审查、提交和发布；线上验收结果待发布后追加。本节不修改 v1.7 的历史 benchmark 或发布证据。
+- 发布：`5b3a4fb74d823d48d7d98a5903d7e3eed13c8256` 已推送 GitHub `master` 并部署，激活前 `nonterminalTasks=[]`。本次未新建测试账号；Android 认证兼容性依据上述本地真实 FTP 集成测试，未进行手机实测。本节不修改 v1.7 的历史 benchmark 或发布证据。
+- 主控公网验收：4 个旧入口 × GET/HEAD × 无/有恶意 `next` 查询共 16 项全部为 302，`Location` 固定 `/ftp/app/`；新版页面 200 且包含 `id=root`，`pub_rsa` 为 200 公钥且无 `Location`，未登录 `get_dir`/`pwd` 均为 200、`{"message":"Need login"}` 且无 `Location`。配置保留 4 MiB、`measured` 与 `hostdare-20261024-v1`。
+- 发布后 Web 以 `ftpweb` 用户运行、PID 784162；vsftpd PID 79395 保持不变，未重启 FTP 服务。两份 Nginx 配置、PAM 与 vsftpd 配置 SHA-256 均与发布前一致；`MemoryHigh=256 MiB`、`MemoryMax=384 MiB` 保留。回退备份为 `/var/backups/ftp-web/20261024T112330Z-5b3a4fb74d823d48d7d98a5903d7e3eed13c8256-bw5piWSk`。

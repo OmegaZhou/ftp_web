@@ -2,7 +2,7 @@
 
 基于 FTP 的文件工作台，使用 React / TypeScript 前端和 Express / SQLite 后端。新界面位于 `/ftp/app/`；旧网页入口 `/ftp`、`/ftp/`、`/ftp/login.html`、`/ftp/index.html` 的 GET/HEAD 请求统一以 302 转到该固定地址，不传递旧查询参数。旧 Android 使用的 `/ftp/api/`、RSA 登录和 JSON 响应保留兼容适配。
 
-2026-10-24 已发布 `6bfea50d88326cce71e721853fcb2698b751d7fb` 至 [正式入口](https://playerzhou.com/ftp/app/)。分块经实网比较后选择 **4 MiB（4,194,304 字节）**，公网配置为 `measured`，报告 ID 为 `hostdare-20261024-v1`。本轮部署、实测、发布冒烟和临时测试账号清理已完成；未覆盖的浏览器与设备验收范围见下文。
+2026-10-24 当前已发布 `5b3a4fb74d823d48d7d98a5903d7e3eed13c8256` 至 [正式入口](https://playerzhou.com/ftp/app/)。本次补齐旧登录页跳转，公网 16 项旧入口 GET/HEAD/查询参数组合均验证为固定 302，新版页面、公钥及未登录 JSON API 正常。Android 认证兼容性通过本地真实 FTP 集成测试验证，未进行手机实测；本次未新建测试账号。分块沿用历史实网比较选出的 **4 MiB（4,194,304 字节）**，公网配置仍为 `measured`，报告 ID 为 `hostdare-20261024-v1`；历史性能报告及未覆盖的浏览器与设备验收范围见下文。
 
 ## 本地运行
 
