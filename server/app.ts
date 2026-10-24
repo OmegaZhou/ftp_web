@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import session from 'express-session';
+import { NodeRequest, sendNodeResponse } from 'srvx/node';
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -14,9 +15,27 @@ import { installLegacy } from './legacy.ts';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const API = '/ftp/api/v2';
 const MiB = 1048576;
-export interface AppOptions { directory?: string; secret?: string; ftp?: Partial<FtpConfig>; transfer?: Partial<TransferConfig>; production?: boolean; origin?: string; legacyKeyDirectory?: string }
+export interface AppOptions { directory?: string; secret?: string; ftp?: Partial<FtpConfig>; transfer?: Partial<TransferConfig>; production?: boolean; origin?: string; legacyKeyDirectory?: string; chunkBenchmarkId?: string }
 type AsyncRoute = (request: Request, response: Response) => Promise<unknown>;
 export const route = (handler: AsyncRoute) => (request: Request, response: Response, next: NextFunction) => { void handler(request, response).catch(next); };
+
+/** Keep the task locked through datastore fsync; socket close only ends response delivery. */
+async function handleTusRequest(transfers: Transfers, request: Request, response: Response, uploadId: string | null) {
+  let result: globalThis.Response;
+  try { result = await transfers.tus.handleWeb(new NodeRequest({ req: request, res: response })); }
+  finally { if (uploadId) await transfers.files.waitForWrite(uploadId); }
+  if (response.destroyed || response.writableEnded) {
+    await result.body?.cancel();
+    return;
+  }
+  let onClose!: () => void;
+  const closed = new Promise<void>(resolve => { onClose = resolve; response.once('close', onClose); });
+  try {
+    // srvx's no-body response waits for end(callback), which never fires after a disconnect.
+    // The protocol handler and tracked datastore finalizer have both settled before this race.
+    await Promise.race([sendNodeResponse(response, result), closed]);
+  } finally { response.off('close', onClose); }
+}
 
 function numberSetting(name: string, fallback: number) {
   const value = process.env[name] === undefined ? fallback : Number(process.env[name]);
@@ -57,6 +76,8 @@ export async function createApp(options: AppOptions = {}) {
   const ftp = new FtpService({ host: process.env.FTP_HOST ?? '127.0.0.1', port: numberSetting('FTP_PORT', 21), secure: process.env.FTP_TLS === 'true', root: process.env.FTP_ROOT ?? '/', timeout: 30000, ...options.ftp });
   const config: TransferConfig = { directory, chunkSize: numberSetting('UPLOAD_CHUNK_SIZE', 8 * MiB), maxChunkSize: 64 * MiB, maxFileSize: numberSetting('UPLOAD_MAX_FILE_BYTES', 8 * 1024 * MiB), userQuota: numberSetting('UPLOAD_USER_QUOTA_BYTES', 12 * 1024 * MiB), globalQuota: numberSetting('UPLOAD_GLOBAL_QUOTA_BYTES', 20 * 1024 * MiB), reserveBytes: numberSetting('UPLOAD_RESERVE_BYTES', 5 * 1024 * MiB), reserveRatio: numberSetting('UPLOAD_RESERVE_RATIO', .2), maxBatchEntries: 10000, ...options.transfer };
   if (!Number.isInteger(config.chunkSize) || config.chunkSize < MiB || config.chunkSize > config.maxChunkSize) throw new Error('UPLOAD_CHUNK_SIZE must be 1–64 MiB; selection is benchmark-pending');
+  const chunkBenchmarkId = options.chunkBenchmarkId ?? process.env.UPLOAD_CHUNK_BENCHMARK_ID;
+  if (chunkBenchmarkId !== undefined && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/u.test(chunkBenchmarkId)) throw new Error('Invalid UPLOAD_CHUNK_BENCHMARK_ID');
   const store = new Store(directory);
   let initializedTransfers: Transfers | undefined;
   try {
@@ -70,7 +91,7 @@ export async function createApp(options: AppOptions = {}) {
       try { validateOrigin(request, options.origin ?? process.env.PUBLIC_ORIGIN); next(); } catch (error) { next(error); }
     });
     app.use(express.json({ limit: '2mb' })); app.use(express.urlencoded({ extended: false, limit: '64kb' }));
-    const publicConfig = { chunkSize: config.chunkSize, chunkSizeStatus: 'benchmark-pending', maxChunkSize: config.maxChunkSize, maxFileSize: config.maxFileSize, maxBatchEntries: config.maxBatchEntries, manifestPageSize: 500, ftpResumeSupported: false, downloadRangeSupported: false };
+    const publicConfig = { chunkSize: config.chunkSize, chunkSizeStatus: chunkBenchmarkId ? 'measured' : 'benchmark-pending', chunkBenchmarkId: chunkBenchmarkId ?? null, maxChunkSize: config.maxChunkSize, maxFileSize: config.maxFileSize, maxBatchEntries: config.maxBatchEntries, manifestPageSize: 500, ftpResumeSupported: false, downloadRangeSupported: false };
     const sessionView = (request: Request) => ({ authenticated: Boolean(request.session.user), user: request.session.user ? { id: request.session.user.id, username: request.session.user.username } : null, csrfToken: request.session.csrfToken ?? null, ftpAuthorized: Boolean(request.session.user && ftp.credentials.has(request.session.user.id)), config: publicConfig });
     const failures = new Map<string, { count: number; until: number }>();
     const login = async (request: Request, credentials: Credentials) => {
@@ -131,7 +152,7 @@ export async function createApp(options: AppOptions = {}) {
     app.post(`${API}/uploads/:id/complete`, route(async (request, response) => { const task = await transfers.complete(request.params.id, request.session.user!.id, request.body.sha256); response.status(202).json({ task: transfers.publicTask(task), statusUrl: `${API}/tasks/${task.id}` }); }));
     app.all([`${API}/uploads`, `${API}/uploads/:id`], route(async (request, response) => {
       if (request.get('x-http-method-override')) throw new ApiError(400, 'METHOD_OVERRIDE_DENIED', '请使用原生 HTTP 方法');
-      if (request.method === 'OPTIONS') { await transfers.tus.handle(request, response); return; }
+      if (request.method === 'OPTIONS') { await handleTusRequest(transfers, request, response, null); return; }
       let task;
       if (request.method === 'POST') {
         const metadata = request.get('upload-metadata') ?? '';
@@ -156,7 +177,7 @@ export async function createApp(options: AppOptions = {}) {
             await transfers.checkQuota(task.owner, 0);
           }
         }
-        await transfers.tus.handle(request, response);
+        await handleTusRequest(transfers, request, response, task.uploadId);
       });
     }));
     installLegacy(app, { root: ROOT, directory, keyDirectory: options.legacyKeyDirectory ?? process.env.FTP_RSA_DIR ?? ROOT, ftp, transfers, login, logout });

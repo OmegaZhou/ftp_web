@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Root-only, single-host release management. prepare never changes the running service.
-# prepare COMMIT ARCHIVE SHA256 | activate COMMIT CHUNK_BYTES PUBLIC_ORIGIN | rollback BACKUP_DIR
+# prepare COMMIT ARCHIVE SHA256 | activate COMMIT CHUNK_BYTES PUBLIC_ORIGIN [BENCHMARK_ID] | rollback BACKUP_DIR
 set -Eeuo pipefail
 umask 077
 BASE=/opt/ftp-web
@@ -99,7 +99,7 @@ restore_backup() {
 }
 
 activate() {
-  local commit=$1 chunk=$2 origin=$3 release backup previous
+  local commit=$1 chunk=$2 origin=$3 benchmark=${4-${UPLOAD_CHUNK_BENCHMARK_ID-}} release backup previous
   release=$(release_path "$commit")
   [[ -d $release && -f $release/RELEASE.json ]] || die 'Prepare the release first.'
   [[ ! -e $BASE/current || -L $BASE/current ]] || die 'Refusing to replace an unknown current path.'
@@ -107,6 +107,7 @@ activate() {
   if [[ -f $RELEASE_ENV ]]; then grep -Fxq '# Managed by ftp_web scripts/deploy.sh' "$RELEASE_ENV" || die 'Release environment is not owned by this script.'; fi
   [[ $chunk =~ ^[0-9]+$ ]] && ((chunk >= 1048576 && chunk <= 67108864)) || die 'Explicit tested chunk size must be 1–64 MiB.'
   [[ $origin =~ ^https://[a-zA-Z0-9.-]+(:[0-9]+)?$ ]] || die 'Use the HTTPS origin without a path.'
+  [[ -z $benchmark || $benchmark =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || die 'Benchmark ID must be 1–64 safe identifier characters.'
   [[ -r /etc/ftp-web/ftp-web.env && -r /opt/ftp_web/pri_key.rsa && -r /opt/ftp_web/pub_key.rsa ]] || die 'Existing authentication material is missing.'
   install -d -o root -g root -m 0700 "$BACKUPS"
   backup=$(mktemp -d "$BACKUPS/$(date -u +%Y%m%dT%H%M%SZ)-$commit-XXXXXXXX")
@@ -136,6 +137,7 @@ FTP_RSA_DIR=/opt/ftp_web
 PUBLIC_ORIGIN=$origin
 UPLOAD_CHUNK_SIZE=$chunk
 EOF
+  if [[ -n $benchmark ]]; then printf 'UPLOAD_CHUNK_BENCHMARK_ID=%s\n' "$benchmark" >>"$RELEASE_ENV"; fi
   chmod 0600 "$RELEASE_ENV"
   cat >"$DROPIN" <<EOF
 # Managed by ftp_web scripts/deploy.sh
@@ -145,6 +147,8 @@ ExecStart=
 ExecStart=/usr/local/bin/node $BASE/current/index.js
 EnvironmentFile=$RELEASE_ENV
 ReadWritePaths=$DATA
+# Reclaim file cache before the base unit's 384 MiB hard limit; measure latency under pressure.
+MemoryHigh=256M
 EOF
   chmod 0644 "$DROPIN"
   ln -s -- "$release" "$BASE/.current-activate-$$"
@@ -158,7 +162,7 @@ EOF
 
 case ${1-} in
   prepare) [[ $# == 4 ]] || die 'prepare COMMIT ARCHIVE SHA256'; prepare "$2" "$3" "$4" ;;
-  activate) [[ $# == 4 ]] || die 'activate COMMIT CHUNK_BYTES PUBLIC_ORIGIN'; activate "$2" "$3" "$4" ;;
+  activate) [[ $# == 4 || $# == 5 ]] || die 'activate COMMIT CHUNK_BYTES PUBLIC_ORIGIN [BENCHMARK_ID]'; activate "$2" "$3" "$4" "${5-${UPLOAD_CHUNK_BENCHMARK_ID-}}" ;;
   rollback) [[ $# == 2 ]] || die 'rollback BACKUP_DIR'; restore_backup "$2" ;;
   *) die 'Choose prepare, activate or rollback.' ;;
 esac

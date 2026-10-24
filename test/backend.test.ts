@@ -1,13 +1,13 @@
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, rm, readdir, statfs } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm, readdir, statfs, stat } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash, randomBytes, generateKeyPairSync } from 'node:crypto';
 import NodeRSA from 'node-rsa';
-import type { Server } from 'node:http';
+import { request as httpRequest, type Server } from 'node:http';
 import { createApp } from '../server/app.ts';
 import { absolutePath, relativePath } from '../server/paths.ts';
 import type { Task } from '../server/types.ts';
@@ -293,4 +293,64 @@ test('data directory enforces one active owner and malformed/wrong logins return
   await temporary.close(); assert.ok((await readFile(path.join(directory, 'development-state/session-secret'), 'utf8')).length >= 64);
   await assert.rejects(createApp({ directory: path.join(directory, 'production-state'), production: true }), /SESSION_SECRET/u);
   await assert.rejects(createApp({ directory: path.join(directory, 'production-state'), production: true, secret: 'production-secret-test' }), /UPLOAD_CHUNK_SIZE/u);
+});
+
+test('chunk selection stays pending until a validated benchmark identifier is configured', async () => {
+  assert.equal(service.config.chunkSizeStatus, 'benchmark-pending');
+  assert.equal(service.config.chunkBenchmarkId, null);
+  const measured = await createApp({ directory: path.join(directory, 'measured-state'), chunkBenchmarkId: 'test-fixture-only', transfer: { chunkSize: 4 * 1048576 } });
+  try {
+    assert.equal(measured.config.chunkSizeStatus, 'measured');
+    assert.equal(measured.config.chunkBenchmarkId, 'test-fixture-only');
+    assert.equal(measured.config.chunkSize, 4 * 1048576);
+  } finally { await measured.close(); }
+  for (const chunkBenchmarkId of ['', '../not-valid', 'line\nbreak', 'a'.repeat(65)]) {
+    await assert.rejects(createApp({ directory: path.join(directory, 'invalid-benchmark-state'), chunkBenchmarkId }), /UPLOAD_CHUNK_BENCHMARK_ID/u);
+  }
+});
+
+test('mid-PATCH socket disconnect releases the task only after the durable writer settles, then HEAD resumes', async () => {
+  const MiB = 1048576, data = randomBytes(8 * MiB), initial = 4 * MiB, partial = 256 * 1024;
+  const task = await newTask('interrupted-socket.bin', data.length); await createUpload(task);
+  assert.equal((await patch(task, data.subarray(0, initial), 0)).status, 204);
+  let release!: () => void, settled!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const writerSettled = new Promise<void>(resolve => { settled = resolve; });
+  const originalWrite = service.transfers.files.write.bind(service.transfers.files);
+  service.transfers.files.write = async (...args) => {
+    try { return await originalWrite(...args); }
+    finally { if (args[1] === task.uploadId) { settled(); await gate; } }
+  };
+  const client = httpRequest(base + '/ftp/api/v2/uploads/' + task.uploadId, { method: 'PATCH', headers: {
+    cookie: alice.cookie, 'x-csrf-token': alice.csrf, 'tus-resumable': '1.0.0',
+    'upload-offset': String(initial), 'content-length': String(data.length - initial), 'content-type': 'application/offset+octet-stream',
+  } });
+  client.on('error', () => {});
+  try {
+    client.write(data.subarray(initial, initial + partial));
+    const deadline = Date.now() + 5000;
+    while ((await stat(service.transfers.filePath(task))).size < initial + partial) {
+      assert.ok(Date.now() < deadline, 'partial request body reached the real file store');
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    client.destroy();
+    await Promise.race([writerSettled, new Promise<never>((_, reject) => setTimeout(() => reject(new Error('writer did not settle after disconnect')), 3000).unref())]);
+    assert.equal(service.store.getTask(task.id).uploadedBytes, initial + partial);
+    let headFinished = false;
+    const head = fetch(base + '/ftp/api/v2/uploads/' + task.uploadId, { method: 'HEAD', headers: { cookie: alice.cookie, 'tus-resumable': '1.0.0' }, signal: AbortSignal.timeout(3000) }).then(response => { headFinished = true; return response; });
+    await new Promise(resolve => setTimeout(resolve, 100));
+    assert.equal(headFinished, false, 'HEAD must wait for the datastore finalizer');
+    assert.ok(service.transfers.locks.has(task.id));
+    release();
+    const response = await head;
+    assert.equal(response.status, 200);
+    assert.equal(Number(response.headers.get('upload-offset')), initial + partial);
+    service.transfers.files.write = originalWrite;
+    assert.equal((await patch(task, data.subarray(initial + partial), initial + partial)).status, 204);
+    assert.equal((await complete(task, hash(data))).status, 202);
+    assert.equal((await waitState(task.id, ['COMPLETED', 'FAILED'])).state, 'COMPLETED');
+    assert.equal(await service.ftp.digest(alice.id, task.destinationPath), hash(data));
+    assert.equal(service.transfers.locks.has(task.id), false);
+    assert.equal(service.transfers.files.pendingWrites.size, 0);
+  } finally { client.destroy(); release(); service.transfers.files.write = originalWrite; }
 });

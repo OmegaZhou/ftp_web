@@ -19,6 +19,7 @@ export interface TransferConfig { directory: string; chunkSize: number; maxChunk
 /** FileStore remains the tus implementation; fsync checkpoints make acknowledged bytes durable. */
 class DurableFiles extends FileStore {
   store: Store;
+  pendingWrites = new Map<string, Promise<number>>();
   constructor(directory: string, store: Store) {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     super({ directory, configstore: {
@@ -41,19 +42,23 @@ class DurableFiles extends FileStore {
     return created;
   }
   override async write(readable: IncomingMessage | Readable, id: string, offset: number) {
-    let result: number;
-    try { result = await super.write(readable, id, offset); }
-    finally {
-      const file = await open(path.join(this.directory, id), 'r+');
-      try {
-        await file.sync();
-        const size = (await file.stat()).size;
-        const task = this.store.taskByUpload(id);
-        if (task) { task.uploadedBytes = size; task.expiresAt = Date.now() + RETENTION; this.store.saveTask(task); }
-      } finally { await file.close(); }
-    }
-    return result!;
+    const pending = (async () => {
+      try { return await super.write(readable, id, offset); }
+      finally {
+        const file = await open(path.join(this.directory, id), 'r+');
+        try {
+          await file.sync();
+          const size = (await file.stat()).size;
+          const task = this.store.taskByUpload(id);
+          if (task) { task.uploadedBytes = size; task.expiresAt = Date.now() + RETENTION; this.store.saveTask(task); }
+        } finally { await file.close(); }
+      }
+    })();
+    this.pendingWrites.set(id, pending);
+    try { return await pending; }
+    finally { if (this.pendingWrites.get(id) === pending) this.pendingWrites.delete(id); }
   }
+  async waitForWrite(id: string) { await this.pendingWrites.get(id); }
 }
 
 /** Single-process durable queue. SQL state is authoritative; timers only wake the worker. */
