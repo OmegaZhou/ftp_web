@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "attribution": {
+    "label": "角色原案 ZipZipPipe · AI 同人演绎",
+    "url": "https://space.bilibili.com/4168597"
+  },
+  "scenes": [
+    {
+      "id": "day",
+      "name": "晴日资料室",
+      "src": "scene-art.webp",
+      "url": "scene-art.webp",
+      "type": "scene",
+      "tone": "day",
+      "width": 900,
+      "height": 507,
+      "bytes": 45816
+    },
+    {
+      "id": "sunset",
+      "name": "夕暮资料室",
+      "src": "scene-sunset.webp",
+      "url": "scene-sunset.webp",
+      "type": "scene",
+      "tone": "day",
+      "width": 900,
+      "height": 507,
+      "bytes": 49440
+    },
+    {
+      "id": "night",
+      "name": "星夜资料室",
+      "src": "scene-night.webp",
+      "url": "scene-night.webp",
+      "type": "scene",
+      "tone": "night",
+      "width": 900,
+      "height": 507,
+      "bytes": 56906
+    },
+    {
+      "id": "library",
+      "name": "星月藏书阁",
+      "src": "scene-library.webp",
+      "url": "scene-library.webp",
+      "type": "scene",
+      "tone": "night",
+      "width": 1672,
+      "height": 941,
+      "bytes": 451082
+    },
+    {
+      "id": "garden",
+      "name": "灯笼庭院",
+      "src": "scene-garden.webp",
+      "url": "scene-garden.webp",
+      "type": "scene",
+      "tone": "night",
+      "width": 1672,
+      "height": 941,
+      "bytes": 475542
+    },
+    {
+      "id": "snow",
+      "name": "雪日阅读室",
+      "src": "scene-snow.webp",
+      "url": "scene-snow.webp",
+      "type": "scene",
+      "tone": "day",
+      "width": 1672,
+      "height": 941,
+      "bytes": 366688
+    }
+  ],
+  "characters": [
+    {
+      "id": "archive",
+      "name": "资料室管理员",
+      "src": "dragon-art.avif",
+      "url": "dragon-art.avif",
+      "type": "character",
+      "description": "白紫旗袍 · 资料室的日常",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 135089
+    },
+    {
+      "id": "academy",
+      "name": "今日值日",
+      "src": "dragon-wave.avif",
+      "url": "dragon-wave.avif",
+      "type": "character",
+      "description": "学院制服 · 欢迎回来",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 150815
+    },
+    {
+      "id": "cardigan",
+      "name": "课后思考",
+      "src": "dragon-think.avif",
+      "url": "dragon-think.avif",
+      "type": "character",
+      "description": "柔软开衫 · 安静阅读",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 154672
+    },
+    {
+      "id": "witch",
+      "name": "星月魔女",
+      "src": "dragon-witch.avif",
+      "url": "dragon-witch.avif",
+      "type": "character",
+      "description": "星轨长裙 · 月白披肩",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 327597
+    },
+    {
+      "id": "yukata",
+      "name": "夏夜浴衣",
+      "src": "dragon-yukata.avif",
+      "url": "dragon-yukata.avif",
+      "type": "character",
+      "description": "紫藤浴衣 · 夏夜祭典",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 285143
+    },
+    {
+      "id": "winter",
+      "name": "冬日学院",
+      "src": "dragon-winter.avif",
+      "url": "dragon-winter.avif",
+      "type": "character",
+      "description": "羊毛大衣 · 雪花围巾",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 258176
+    }
+  ],
+  "pet": {
+    "id": "dragon-pet",
+    "name": "Q版龙娘",
+    "src": "dragon-pet-actions.avif",
+    "url": "dragon-pet-actions.avif",
+    "type": "pet",
+    "columns": 3,
+    "rows": 2,
+    "poses": [
+      "idle",
+      "wave",
+      "walk",
+      "jump",
+      "sleep",
+      "drag"
+    ],
+    "width": 600,
+    "height": 400,
+    "bytes": 50989
+  }
+}

@@ -1,0 +1,2 @@
+# Real FTP protocol fixture for the Node integration tests.
+pyftpdlib==2.2.0

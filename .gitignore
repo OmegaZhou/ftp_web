@@ -9,6 +9,12 @@ CLAUDE.md
 # ===== 中间数据 / 运行产物 =====
 error.log
 upload_tmp/
+.data/
+web/dist/
+coverage/
+test-output/
+*.tsbuildinfo
+.codex/tasks/task_001/runtime-qa/
 
 # ===== 安卓客户端构建产物 =====
 android_client/.gradle/
